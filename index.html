@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Candy Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3ECDD;
+    --paper-dark:#E9DCBF;
+    --ink:#241F1B;
+    --ink-soft:#5B5248;
+    --line:#D8C9A4;
+    --red:#B23A2E;
+    --red-dark:#8C2C22;
+    --caramel:#B4791C;
+    --green:#4C7A4A;
+    --grey:#8C8378;
+    --card-shadow: 0 1px 0 rgba(36,31,27,0.08);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  body{
+    padding-bottom:4rem;
+  }
+
+  .stripe{
+    height:10px;
+    width:100%;
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--red),
+      var(--red) 14px,
+      var(--paper) 14px,
+      var(--paper) 28px
+    );
+  }
+
+  header{
+    max-width:960px;
+    margin:0 auto;
+    padding:2.75rem 1.5rem 1.5rem;
+  }
+
+  h1{
+    font-family:'Fraunces', Georgia, serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(2.1rem, 5vw, 3rem);
+    line-height:1.05;
+    margin:0 0 0.6rem;
+    color:var(--ink);
+  }
+
+  h1 em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--red-dark);
+  }
+
+  header p{
+    max-width:56ch;
+    color:var(--ink-soft);
+    font-size:1.02rem;
+    line-height:1.55;
+    margin:0;
+  }
+
+  .controls{
+    max-width:960px;
+    margin:0 auto;
+    padding:0 1.5rem 1.5rem;
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.75rem;
+    align-items:center;
+    border-bottom:1px solid var(--line);
+    padding-bottom:1.5rem;
+  }
+
+  .search-wrap{
+    position:relative;
+    flex:1 1 220px;
+  }
+
+  #search{
+    width:100%;
+    padding:0.6rem 0.9rem;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:#fff;
+    font-family:inherit;
+    font-size:0.95rem;
+    color:var(--ink);
+  }
+  #search:focus{
+    outline:2px solid var(--red);
+    outline-offset:1px;
+  }
+
+  .filter-select{
+    padding:0.6rem 2rem 0.6rem 0.8rem;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:#fff;
+    font-family:inherit;
+    font-size:0.9rem;
+    color:var(--ink);
+    appearance:none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%235B5248'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 0.7rem center;
+  }
+  .filter-select:focus{ outline:2px solid var(--red); outline-offset:1px; }
+
+  .reset-btn{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:0.6rem 0.9rem;
+    font-family:inherit;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .reset-btn:hover{ border-color:var(--red); color:var(--red-dark); }
+
+  .summary{
+    max-width:960px;
+    margin:0 auto;
+    padding:1rem 1.5rem 0;
+    font-size:0.9rem;
+    color:var(--ink-soft);
+  }
+  .summary strong{ color:var(--ink); font-weight:600; }
+  .summary .dot{ color:var(--line); margin:0 0.4em; }
+
+  table{
+    max-width:960px;
+    margin:1rem auto 0;
+    width:calc(100% - 3rem);
+    border-collapse:collapse;
+    font-size:0.95rem;
+  }
+
+  thead th{
+    text-align:left;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    padding:0.5rem 0.6rem;
+    border-bottom:2px solid var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+    user-select:none;
+  }
+  thead th.no-sort{ cursor:default; }
+  thead th:hover:not(.no-sort){ color:var(--red-dark); }
+  thead th .arrow{
+    display:inline-block;
+    margin-left:0.3em;
+    font-size:0.75em;
+    opacity:0.55;
+  }
+  thead th.sorted .arrow{ opacity:1; color:var(--red); }
+
+  tbody tr{
+    border-bottom:1px solid var(--line);
+  }
+  tbody tr:hover{ background:var(--paper-dark); }
+  tbody tr.hidden{ display:none; }
+
+  td{
+    padding:0.75rem 0.6rem;
+    vertical-align:middle;
+  }
+
+  .thumb{
+    width:160px;
+    height:160px;
+    border-radius:6px;
+    object-fit:cover;
+    display:block;
+    background:#fff;
+    box-shadow: var(--card-shadow);
+  }
+
+  td.name-cell{
+    min-width:150px;
+  }
+
+  td.name-cell a{
+    color:var(--ink);
+    text-decoration:none;
+    font-weight:500;
+    border-bottom:1px solid var(--line);
+  }
+  td.name-cell a:hover{
+    color:var(--red-dark);
+    border-bottom-color:var(--red);
+  }
+
+  .badge{
+    display:inline-block;
+    padding:0.3rem 0.7rem;
+    border-radius:3px;
+    font-size:0.85rem;
+    font-weight:500;
+    border:1px solid var(--line);
+    white-space:nowrap;
+  }
+  .badge.common-yes{ background-color:#E7EFE3; border-color:var(--green); color:#33562F; }
+  .badge.common-kinda{ background-color:#F7EEDA; border-color:var(--caramel); color:#8A5A10; }
+  .badge.common-no{ background-color:#F1EEE7; border-color:var(--grey); color:var(--ink-soft); }
+
+  select.field{
+    padding:0.4rem 1.9rem 0.4rem 0.6rem;
+    border-radius:3px;
+    font-family:inherit;
+    font-size:0.85rem;
+    appearance:none;
+    cursor:pointer;
+    border:1px solid var(--line);
+    background-repeat:no-repeat;
+    background-position:right 0.6rem center;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='6'><path d='M0 0l4.5 6 4.5-6z' fill='%235B5248'/></svg>");
+    min-width:88px;
+  }
+  select.field:focus{ outline:2px solid var(--red); outline-offset:1px; }
+
+  select.want[data-val="yes"]{ background-color:#F5E0DC; border-color:var(--red); color:var(--red-dark); }
+  select.want[data-val="maybe"]{ background-color:#F7EEDA; border-color:var(--caramel); color:#8A5A10; }
+  select.want[data-val=""]{ background-color:#F1EEE7; border-color:var(--grey); color:var(--ink-soft); }
+
+  footer{
+    max-width:960px;
+    margin:2rem auto 0;
+    padding:0 1.5rem;
+    font-size:0.82rem;
+    color:var(--grey);
+  }
+
+  @media (max-width:640px){
+    .thumb{ width:120px; height:120px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stripe"></div>
+
+<header>
+  <h1>Het <em>Snoepwinkeltje</em><br>candy shortlist</h1>
+  <p>Select and sort by how common a candy is and whether I want to get them. You can change the "Want" field, the the browser will remember your choices.</p>
+</header>
+
+<div class="controls">
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Search candy names…" autocomplete="off">
+  </div>
+  <select id="filter-common" class="filter-select">
+    <option value="">Common: any</option>
+    <option value="yes">Common: yes</option>
+    <option value="kinda">Common: kinda</option>
+    <option value="no">Common: no</option>
+  </select>
+  <select id="filter-want" class="filter-select">
+    <option value="any">Want: any</option>
+    <option value="yes">Want: yes</option>
+    <option value="maybe">Want: maybe</option>
+    <option value="blank">Want: blank</option>
+  </select>
+  <button class="reset-btn" id="reset-btn" type="button">Reset "want" to defaults</button>
+</div>
+
+<div class="summary" id="summary"></div>
+
+<table>
+  <thead>
+    <tr>
+      <th class="no-sort">Image</th>
+      <th data-sort="name">Candy <span class="arrow">↕</span></th>
+      <th data-sort="common">Common <span class="arrow">↕</span></th>
+      <th data-sort="want">Want <span class="arrow">↕</span></th>
+    </tr>
+  </thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<footer>Data pulled from snoepwinkeltje.com. "Common" comes straight from each record in the file — edit the <code>common</code> value in the source HTML to change it. "Want" picks are stored locally in your browser via localStorage, so they'll persist here on your device but won't sync — send the file itself if you want to share your picks, or edit the <code>want</code> default in the source directly.</footer>
+
+<script>
+// Each record: common and want are the editable defaults (edit these directly in the source
+// if you'd like), followed by the image, product link, and name.
+const ITEMS = [
+{ "common": "no", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/ullevellen.png", "link": "https://snoepwinkeltje.com/product/ulevellen/", "name": "Ulevellen" },
+{ "common": "no", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/drop-ballen.png", "link": "https://snoepwinkeltje.com/product/drop-ballen/", "name": "Drop Ballen" },
+{ "common": "no", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/polka_brokken_rens_joosen_54160919.png", "link": "https://snoepwinkeltje.com/product/polkabrokken/", "name": "Polkabrokken" },
+{ "common": "no", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/drop-salmiak-choc.png", "link": "https://snoepwinkeltje.com/product/chocolade-salmiak-drop/", "name": "Chocolade Salmiak drop" },
+{ "common": "no", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/eierlikeur-bonbons.png", "link": "https://snoepwinkeltje.com/product/eierlikeur-bonbons/", "name": "eierlikeur bonbons" },
+{ "common": "no", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/finse-drop.png", "link": "https://snoepwinkeltje.com/product/finse-drop/", "name": "Finse drop" },
+{ "common": "kinda", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/hoest-tabletten-1.png", "link": "https://snoepwinkeltje.com/product/hoest-tabletten/", "name": "Hoest tabletten" },
+{ "common": "kinda", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/boterballen.png", "link": "https://snoepwinkeltje.com/product/boterballen/", "name": "Boterballen" },
+{ "common": "kinda", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/haverstro.png", "link": "https://snoepwinkeltje.com/product/haverstro/", "name": "Haverstro Pitten" },
+{ "common": "kinda", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/09/dragees_paaseitjes.png", "link": "https://snoepwinkeltje.com/product/dragees-eitjes/", "name": "Dragees Eitjes" },
+{ "common": "kinda", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/zwart_wit_zoet_groot.png", "link": "https://snoepwinkeltje.com/product/zwart-wit-zoet-groot/", "name": "Zwart/wit zoet groot" },
+{ "common": "yes", "want": "yes", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/salmiak-rondos.png", "link": "https://snoepwinkeltje.com/product/salmiak-rondos/", "name": "Salmiak rondo’s" },
+{ "common": "no", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/bosbessen-drop.png", "link": "https://snoepwinkeltje.com/product/bosbessen-drop/", "name": "Bosbessen drop" },
+{ "common": "no", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/08/toffee-reep-2.png", "link": "https://snoepwinkeltje.com/product/chocolade-toffee-reep-melk/", "name": "Chocolade-toffee reep melk" },
+{ "common": "no", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/08/drop_melk_chocolade.png", "link": "https://snoepwinkeltje.com/product/drop-melk-chocolade/", "name": "Drop melk chocolade" },
+{ "common": "no", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/08/drop_witte_yoghurt_chocolade.png", "link": "https://snoepwinkeltje.com/product/drop-yoghurt-witte-chocolade/", "name": "Drop yoghurt witte chocolade" },
+{ "common": "no", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/joris-gember.png", "link": "https://snoepwinkeltje.com/product/joris-zachte-gember-drop/", "name": "Joris Zachte Gember drop" },
+{ "common": "no", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/salmiak-truffel.png", "link": "https://snoepwinkeltje.com/product/salmiak-truffel/", "name": "Salmiak truffel" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/zwartwit_zoet.png", "link": "https://snoepwinkeltje.com/product/zwart-wit-zoet-klein/", "name": "Zwart/wit zoet klein" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/zwartwit_zout.png", "link": "https://snoepwinkeltje.com/product/zwart-wit-zout-klein/", "name": "Zwart/wit zout klein" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/sneeuw-caramel.png", "link": "https://snoepwinkeltje.com/product/sneeuwcaramels/", "name": "Sneeuwcaramels" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/709-Wijnballen-Groot.png", "link": "https://snoepwinkeltje.com/product/wijnballen/", "name": "Wijnballen" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/anijs-muizen.png", "link": "https://snoepwinkeltje.com/product/anijs-muizen/", "name": "Anijs muizen" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/caramelstaafjes.png", "link": "https://snoepwinkeltje.com/product/caramel-staafjes/", "name": "Caramel staafjes" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/zwartschoolkrijt.png", "link": "https://snoepwinkeltje.com/product/zwart-schoolkrijt/", "name": "Zwart schoolkrijt" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/drop-haring-1.png", "link": "https://snoepwinkeltje.com/product/drop-haring/", "name": "Drop Haring" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/drop-harten.png", "link": "https://snoepwinkeltje.com/product/drop-harten/", "name": "Drop Harten" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/drop-hompen.png", "link": "https://snoepwinkeltje.com/product/drop-hompen/", "name": "Drop Hompen" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/zoethoutjes.png", "link": "https://snoepwinkeltje.com/product/zouthoutjes/", "name": "Zouthoutjes" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/drop-staafjes.png", "link": "https://snoepwinkeltje.com/product/drop-staafjes/", "name": "Drop staafjes" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/dropstokjes.png", "link": "https://snoepwinkeltje.com/product/drop-stokjes/", "name": "Drop stokjes" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/viola-drop.png", "link": "https://snoepwinkeltje.com/product/drop-viola/", "name": "Drop viola" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/heksenhyl-mint-1.png", "link": "https://snoepwinkeltje.com/product/heksehyl-mint/", "name": "Heksehyl mint" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/mintdrop-1.png", "link": "https://snoepwinkeltje.com/product/mint-drop/", "name": "Mint drop" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/pepermuntkussentjes.png", "link": "https://snoepwinkeltje.com/product/pepermunt-kussentjes/", "name": "Pepermunt kussentjes" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/salmiak-stokjes.png", "link": "https://snoepwinkeltje.com/product/salmiak-stokjes/", "name": "Salmiak stokjes" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/09/blik_sour_cherry.png", "link": "https://snoepwinkeltje.com/product/sour-cherry-drops/", "name": "Sour Cherry Drops" },
+{ "common": "kinda", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/xxxx-zout.png", "link": "https://snoepwinkeltje.com/product/xxxx-zoute-drop/", "name": "XXXX Zoute drop" },
+{ "common": "yes", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/3810-Kaneel-Kussentjes.png", "link": "https://snoepwinkeltje.com/product/kaneel-kussentjes/", "name": "Kaneel Kussentjes" },
+{ "common": "yes", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/kaneel-hompen.png", "link": "https://snoepwinkeltje.com/product/kaneelhompen/", "name": "Kaneelhompen" },
+{ "common": "yes", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/roomboterwafeltjes.png", "link": "https://snoepwinkeltje.com/product/roomboterwafels/", "name": "Roomboterwafels" },
+{ "common": "yes", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/dubbel-zout.png", "link": "https://snoepwinkeltje.com/product/dubbel-zoute-a-g-drop/", "name": "Dubbel zoute A.G. drop" },
+{ "common": "yes", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/dubbel-zout.png", "link": "https://snoepwinkeltje.com/product/dubbel-zoute-drop/", "name": "Dubbel zoute drop" },
+{ "common": "yes", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/kaneelstok_nr_2_rens_joosen_1892768050.png", "link": "https://snoepwinkeltje.com/product/kaneelstok/", "name": "Kaneelstok" },
+{ "common": "yes", "want": "maybe", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/09/napoleon_zwart_wit.png", "link": "https://snoepwinkeltje.com/product/napoleon-zwart-wit/", "name": "Napoleon Zwart Wit zakje" },
+{ "common": "kinda", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/caramel_chocolade.png", "link": "https://snoepwinkeltje.com/product/caramel-met-chocolade-vulling/", "name": "Caramel met chocolade vulling" },
+{ "common": "kinda", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/caramel_zout.png", "link": "https://snoepwinkeltje.com/product/caramel-zout/", "name": "Caramel zout" },
+{ "common": "kinda", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/krakelingen-drop.png", "link": "https://snoepwinkeltje.com/product/krakeling/", "name": "Krakeling" },
+{ "common": "kinda", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/01/advokaat-van-melle.png", "link": "https://snoepwinkeltje.com/product/advocaat-toffees/", "name": "Advocaat Toffees" },
+{ "common": "kinda", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/09/blik_wild_berry.png", "link": "https://snoepwinkeltje.com/product/wild-berry-drops/", "name": "Wild Berry Drops" },
+{ "common": "kinda", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/zweedse-drop-pegels.png", "link": "https://snoepwinkeltje.com/product/zweedse-drop-pegels/", "name": "Zweedse drop pegels"},
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/engelse-drop.png", "link": "https://snoepwinkeltje.com/product/engelse-drop/", "name": "Engelse drop" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/griotten.png", "link": "https://snoepwinkeltje.com/product/griotten/", "name": "Griotten" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/heksenhyl.png", "link": "https://snoepwinkeltje.com/product/heksenhyl/", "name": "Heksenhyl" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/honingnoppen-1.png", "link": "https://snoepwinkeltje.com/product/honing-noppen/", "name": "Honing Noppen" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2025/03/hopjes.png", "link": "https://snoepwinkeltje.com/product/jordaneese-hopjes/", "name": "Jordaneese Hopjes" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/07/kaneelstokjes_rens_joosen_1843541648.png", "link": "https://snoepwinkeltje.com/product/kaneelstokjes/", "name": "Kaneelstokjes" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/kokindjes-katja.png", "link": "https://snoepwinkeltje.com/product/kokindjes/", "name": "Kokindjes" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/09/blik_mixed_fruit.png", "link": "https://snoepwinkeltje.com/product/mixed-fruit-drops/", "name": "Mixed Fruit Drops" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/09/napoleon_citroen-1.png", "link": "https://snoepwinkeltje.com/product/napoleon-citroen/", "name": "Napoleon Citroen zakje" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/schoolkrijtjes-venco-1.png", "link": "https://snoepwinkeltje.com/product/schoolkrijt/", "name": "Schoolkrijt" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/tv-pastilles-zout-limecon.png", "link": "https://snoepwinkeltje.com/product/tv-pastilles/", "name": "Tv pastilles" },
+{ "common": "yes", "want": "", "img": "https://snoepwinkeltje.com/wp-content/uploads/2024/12/zwart-witjes.png", "link": "https://snoepwinkeltje.com/product/zwart-witjes/", "name": "Zwart witjes" }
+];
+
+const STORAGE_KEY = 'snoepwinkeltje-shortlist-v2';
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){ return {}; }
+}
+function saveState(state){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+let state = loadState(); // overrides for "want" only, keyed by candy name
+let sortKey = 'want';
+let sortDir = 1;
+let searchTerm = '';
+let filterCommon = '';
+let filterWantMode = 'any'; // 'any' | 'yes' | 'maybe' | 'blank'
+
+const rowsEl = document.getElementById('rows');
+const summaryEl = document.getElementById('summary');
+
+function getWant(it){
+  return state[it.name] !== undefined ? state[it.name] : it.want;
+}
+function setWant(name, value){
+  state[name] = value;
+  saveState(state);
+}
+
+function commonRank(v){ return {yes:0, kinda:1, no:2}[v] ?? 3; }
+function wantRank(v){ return {yes:0, maybe:1, '':2}[v] ?? 2; }
+
+function render(){
+  let data = ITEMS.map(it => ({ ...it, want: getWant(it) }));
+
+  data.sort((a,b) => {
+    let av, bv;
+    if(sortKey === 'name'){ av = a.name.toLowerCase(); bv = b.name.toLowerCase(); }
+    else if(sortKey === 'common'){ av = commonRank(a.common); bv = commonRank(b.common); }
+    else { av = wantRank(a.want); bv = wantRank(b.want); }
+    if(av < bv) return -1 * sortDir;
+    if(av > bv) return 1 * sortDir;
+    return a.name.localeCompare(b.name);
+  });
+
+  rowsEl.innerHTML = '';
+  let visibleCount = 0;
+  let wantYes = 0, wantMaybe = 0;
+
+  data.forEach(it => {
+    if(it.want === 'yes') wantYes++;
+    if(it.want === 'maybe') wantMaybe++;
+
+    const matchesSearch = it.name.toLowerCase().includes(searchTerm);
+    const matchesCommon = !filterCommon || it.common === filterCommon;
+    let matchesWant = true;
+    if(filterWantMode === 'yes') matchesWant = it.want === 'yes';
+    else if(filterWantMode === 'maybe') matchesWant = it.want === 'maybe';
+    else if(filterWantMode === 'blank') matchesWant = it.want === '';
+
+    const visible = matchesSearch && matchesCommon && matchesWant;
+    if(visible) visibleCount++;
+
+    const tr = document.createElement('tr');
+    if(!visible) tr.classList.add('hidden');
+
+    const tdImg = document.createElement('td');
+    const img = document.createElement('img');
+    img.src = it.img;
+    img.alt = it.name;
+    img.className = 'thumb';
+    img.loading = 'lazy';
+    tdImg.appendChild(img);
+
+    const tdName = document.createElement('td');
+    tdName.className = 'name-cell';
+    const a = document.createElement('a');
+    a.href = it.link;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = it.name;
+    tdName.appendChild(a);
+
+    const tdCommon = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = 'badge common-' + it.common;
+    badge.textContent = it.common === 'yes' ? 'Yes' : it.common === 'kinda' ? 'Kinda' : 'No';
+    tdCommon.appendChild(badge);
+
+    const tdWant = document.createElement('td');
+    tdWant.appendChild(makeWantSelect(it.name, it.want));
+
+    tr.append(tdImg, tdName, tdCommon, tdWant);
+    rowsEl.appendChild(tr);
+  });
+
+  summaryEl.innerHTML =
+    `<strong>${visibleCount}</strong> of ${ITEMS.length} candies shown` +
+    `<span class="dot">·</span><strong>${wantYes}</strong> definite yes` +
+    `<span class="dot">·</span><strong>${wantMaybe}</strong> maybe`;
+
+  document.querySelectorAll('thead th[data-sort]').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.sort === sortKey);
+    const arrow = th.querySelector('.arrow');
+    arrow.textContent = th.dataset.sort === sortKey ? (sortDir === 1 ? '↑' : '↓') : '↕';
+  });
+}
+
+function makeWantSelect(name, value){
+  const sel = document.createElement('select');
+  sel.className = 'field want';
+  sel.dataset.val = value;
+  [['', '—'], ['maybe','Maybe'], ['yes','Yes']].forEach(([val, label]) => {
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = label;
+    if(val === value) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => {
+    setWant(name, sel.value);
+    sel.dataset.val = sel.value;
+    render();
+  });
+  return sel;
+}
+
+document.querySelectorAll('thead th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if(sortKey === key){ sortDir *= -1; }
+    else { sortKey = key; sortDir = 1; }
+    render();
+  });
+});
+
+document.getElementById('search').addEventListener('input', (e) => {
+  searchTerm = e.target.value.trim().toLowerCase();
+  render();
+});
+
+document.getElementById('filter-common').addEventListener('change', (e) => {
+  filterCommon = e.target.value;
+  render();
+});
+
+document.getElementById('filter-want').addEventListener('change', (e) => {
+  filterWantMode = e.target.value;
+  render();
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if(confirm('Reset "want" back to the defaults set in the file, discarding your browser edits?')){
+    state = {};
+    saveState(state);
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
